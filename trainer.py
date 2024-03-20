@@ -1,172 +1,218 @@
 # python=3.8
+import pandas as pd
 import numpy as np
+from sklearn.neural_network import MLPClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.inspection import permutation_importance
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import cross_val_score
+from matplotlib import pyplot
+import pickle
 
-from sklearn.utils import shuffle 
-from sklearn.model_selection import train_test_split
-
-from tensorflow.keras.models import Sequential, load_model 
-from tensorflow.keras.layers import Dense, Dropout
-from tensorflow.keras.utils import normalize, to_categorical
-from tensorflow.keras.optimizers import Adam, SGD
-
-import matplotlib.pyplot as plt
-
+######################
+# HYPER PARAMETERS
+######################
+MAX_ITER = 1282
+TRAIN_PERCENTAGE = 0.7
+BATCH_SIZE = 96
+SOLVER = 'adam'
+ACTIVATION = 'relu'
+LEARNING_RATE = 'constant'
+LEARNING_RATE_INIT = 0.001
+HIDDEN_LAYERS = (12, 33, 32, 3)
+VERBOSE = 0
+SHUFFLE = True
+######################
+######################
+######################
 
 
 ######################
 # HYPER PARAMETERS
 ######################
 DATASET_FILE_PATH = 'dataset.csv'
-EPOCH = 100
-TEST_PERCENTAGE = .1
-BATCH_SIZE = 2
-NUMBER_OF_INPUTS = 3
-VALIDATION_SPLIT = 0.2
+PRINT_METRICS = False
+SAVE_MODEL = False
 ######################
 ######################
 ######################
-
 
 
 ######################
 # PREPARING DATA
 ######################
-# Loads dataset from CSV to Numpy.
-# Gets values as float.
-dataset = np.loadtxt(DATASET_FILE_PATH, delimiter=",", dtype=float)
+# Loads dataset from CSV to Pandas.
+df_model = pd.read_csv(DATASET_FILE_PATH, header=None)
 
-# Splits the inputs and targets.
-inputs = dataset[:,0:NUMBER_OF_INPUTS]
-targets_from_file = dataset[:,-1]
+# Gets the raw values and places indexes on them.
+df_model = df_model.rename(columns={0: 'pe', 
+                                  1: 'price_book',
+                                  2: 'roe', 
+                                  3: 'roa',
+                                  4: 'debt_to_equity', 
+                                  5: 'gross_margin',
+                                  6: 'operating_margin', 
+                                  7: 'current_ratio',
+                                  8: 'quick_ratio',
+                                  9: 'price_fcf',
+                                  10: 'eps', 
+                                  11: 'book_value_per_share',
+                                  12: 'interest_coverage',
+                                  13: 'asset_turnover',
+                                  14: 'debt_asset',
+                                  15: 'target'})
 
-# Converts numerical targets to words.
-targets = []
-for target in targets_from_file:
-    if target == 3:
-        targets.append(2)
-    if target == 2:
-        targets.append(1)
-    if target == 1:
-        targets.append(0)
-targets = np.array(targets)
+# Inputs for the model.
+attributes = ['pe',
+              'price_book',
+              'roe',
+              'roa',
+              'debt_to_equity',
+              'gross_margin',
+              'operating_margin',
+              'current_ratio',
+              'quick_ratio',
+              'price_fcf',
+              'eps',
+              'book_value_per_share',
+              'interest_coverage',
+              'asset_turnover',
+              'debt_asset']
 
-# Splits the training and test sets based on a percentage given.
-inputs_train, inputs_test, targets_train, targets_test = train_test_split(inputs,
-                                                                         targets,
-                                                                         test_size = TEST_PERCENTAGE,
-                                                                         random_state = 1)
+X = df_model[attributes]
+y = df_model['target']
 
-# Shuffles both inputs and targets while keeping their relative positions.
-inputs_train, targets_train = shuffle(inputs_train, targets_train)
+train_pct_index = int(TRAIN_PERCENTAGE * len(X))
+X_train, X_test = X[:train_pct_index], X[train_pct_index:]
+y_train, y_test = y[:train_pct_index], y[train_pct_index:]
 
-# Normalizes the data from 1 to 0.
-inputs_train_scaled = normalize(inputs_train, axis=1)
-inputs_test_scaled = normalize(inputs_test, axis=1)
-
-
-targets_train = to_categorical(targets_train, num_classes=3)
-targets_test = to_categorical(targets_test, num_classes=3)
-
-######################
-# PREPARING MODEL
-######################
-
-#optimizer = Adam(lr=0.001)
-optimizer = SGD(lr=0.001)
-
-model = Sequential()
-
-# Hidden Layers
-model.add(Dense(units = 30, input_dim = NUMBER_OF_INPUTS, activation = 'relu'))
-model.add(Dropout(0.2))
-model.add(Dense(units = 30, activation = 'relu'))
-model.add(Dropout(0.2))
-model.add(Dense(units = 30, input_dim = NUMBER_OF_INPUTS, activation = 'relu'))
-model.add(Dropout(0.2))
-model.add(Dense(units = 30, activation = 'relu'))
-model.add(Dropout(0.2))
-
-
-# Output layer
-model.add(Dense(units = 3, activation = 'softmax'))
-#model.add(Dense(units = 3, activation = 'softmax'))
-
+# Normalize inputs.
+sc = StandardScaler()
+X_train = sc.fit_transform(X_train)
+X_test = sc.fit_transform(X_test)
 
 
 ######################
-# TRAINING MODEL
+# TRAINING
 ######################
+temp_acc = 0
+temp_pos = 0
+for i in range(1):
 
-model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
-# model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+    NN = MLPClassifier(hidden_layer_sizes = HIDDEN_LAYERS,
+                    random_state = 100,
+                    verbose = VERBOSE,
+                    max_iter = MAX_ITER,
+                    activation = ACTIVATION,
+                    solver = SOLVER,
+                    batch_size = BATCH_SIZE,
+                    learning_rate = LEARNING_RATE,
+                    shuffle = SHUFFLE,
+                    n_iter_no_change = MAX_ITER)
 
+    NN.fit(X_train, y_train)
 
-model.fit(x = inputs_train, y = targets_train, epochs = EPOCH, shuffle = True, batch_size = BATCH_SIZE)
-#history = model.fit(x = inputs_train, y = targets_train, epochs = EPOCH, shuffle = True, batch_size = BATCH_SIZE, validation_split=VALIDATION_SPLIT)
+    cross_val_score_recall = np.mean(cross_val_score(NN, X_train,y_train, cv=4, scoring='recall'))
 
-
-
-
-######################
-# VALIDATING TEST
-######################
-loss, accuracy = model.evaluate(inputs_test, targets_test)
-
-print('\nEVALUATION')
-print('Loss: %.2f' % (loss))
-print('Accuracy: %.2f' % (accuracy*100))
-
-
-
+    print(cross_val_score_recall)
 
 
+    ######################
+    # PREDICTING
+    ######################
+    pred_train = NN.predict(X_train)
+    pred_test = NN.predict(X_test)
+    acc_train = accuracy_score(y_train, pred_train)
+    acc_test = accuracy_score(y_test, pred_test)
 
-######################
-# PREDICTION
-######################
-predictions = model.predict(inputs_test)
+    if cross_val_score_recall > temp_acc:
+        temp_acc = cross_val_score_recall
+        temp_pos = i
 
-print('\n\n')
-show_num = 5
-for i in range(len(predictions)):
+    #print(f'pos {i} done at {cross_val_score_recall}')
+    #print(f'best so far : {temp_acc} at {temp_pos}')
 
-    if i == show_num & show_num != 0:
-        break
-
-    print(f"PREDICTION SCALED: {predictions[i]}")
-    print(f"PREDICTION : {np.argmax(predictions[i])}")
+    print("="*20)
+    print('****Train Results****')
+    print("Accuracy: {:.4%}".format(acc_train))
+    print('****Test Results****')
+    print("Accuracy: {:.4%}".format(acc_test)) 
     print('\n')
-    print(f"INPUTS: {inputs_test[i]}")
-    print('###########################################')
-    print('###########################################\n')
 
+#print(f'temp_acc : {temp_acc}')
+#print(f'temp_pos : {temp_pos}')
 
 
 ######################
 # SAVE MODEL
 ######################
-#model.save('earnings_ai.model')
-
-#print(history.history.keys())
-# loss, accuracy
-
-# summarize history for accuracy
-# plt.plot(history.history['accuracy'])
-# plt.plot(history.history['val_accuracy'])
-# plt.title('model accuracy')
-# plt.ylabel('accuracy')
-# plt.xlabel('epoch')
-# plt.legend(['train', 'test'], loc='upper left')
-# plt.show()
-# # summarize history for loss
-# plt.plot(history.history['loss'])
-# plt.plot(history.history['val_loss'])
-# plt.title('model loss')
-# plt.ylabel('loss')
-# plt.xlabel('epoch')
-# plt.legend(['train', 'test'], loc='upper left')
-# plt.show()
-
-del model
+if SAVE_MODEL:
+    with open('model.pkl','wb') as f:
+        pickle.dump(NN,f)
 
 
+
+######################
+# METRICS
+######################
+print(df_model['target'].value_counts())
+print('\n\n')
+
+matrix_train = confusion_matrix(y_train, pred_train)
+matrix_test = confusion_matrix(y_test, pred_test)
+
+print('matrix_train confusion_matrix')
+print(matrix_train)
+print('\n')
+
+print('matrix_test confusion_matrix')
+print(matrix_test)
+print('\n')
+
+report_train = classification_report(y_train, pred_train)
+report_test = classification_report(y_test, pred_test)
+
+
+print('report_train classification_report')
+print(report_train)
+print('\n')
+
+print('report_test classification_report')
+print(report_test)
+print('\n')
+
+if PRINT_METRICS:
+    with open('metrics.txt','a+') as f:
+        f.write(f'dataset :\t\t dataset_.csv \n')
+        f.write(f'train_acc :\t\t {acc_train} \n')
+        f.write(f'test_acc :\t\t {acc_test} \n')
+        f.write(f'hidden_layers :\t\t {HIDDEN_LAYERS} \n')
+        f.write(f'max_iter :\t\t {MAX_ITER} \n')
+        f.write(f'train_percentage :\t {TRAIN_PERCENTAGE} \n')
+        f.write(f'batch_size :\t\t {BATCH_SIZE} \n')
+        f.write(f'solver :\t\t {SOLVER} \n')
+        f.write(f'activation :\t\t {ACTIVATION} \n')
+        f.write(f'learning_rate :\t\t {LEARNING_RATE} \n')
+        f.write(f'learning_rate_init :\t {LEARNING_RATE_INIT} \n')
+        f.write(f'shuffle :\t\t {SHUFFLE} \n\n')
+        f.write(f'data_split :\n{y.value_counts()} \n\n')
+        f.write(f'matrix_train :\n {matrix_train} \n\n')
+        f.write(f'matrix_test :\n {matrix_test} \n\n')
+        f.write(f'report_train :\n {report_train} \n\n')
+        f.write(f'report_test :\n {report_test} \n\n')
+        f.write(f'########################################## \n')
+        f.write(f'########################################## \n')
+        f.write(f'########################################## \n\n\n')
+
+'''
+results = permutation_importance(NN, X, y, scoring='neg_mean_squared_error')
+# get importance
+importance = results.importances_mean
+# summarize feature importance
+for i,v in enumerate(importance):
+	print('Feature: %0d, Score: %.5f' % (i,v))
+# plot feature importance
+
+pyplot.bar([x for x in range(len(importance))], importance)
+pyplot.show()
+'''
