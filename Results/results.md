@@ -2,7 +2,6 @@
 
 ### Hyper paramiters
 hidden_layers :	(7, 33, 32, 3)
-
 max_iter : 1000
 train_percentage : 0.75
 batch_size : 75
