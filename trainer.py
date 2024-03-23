@@ -8,18 +8,20 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import cross_val_score
 from matplotlib import pyplot
 import pickle
+import warnings
 
 ######################
 # HYPER PARAMETERS
 ######################
-MAX_ITER = 1282
-TRAIN_PERCENTAGE = 0.7
-BATCH_SIZE = 96
+MAX_ITER = 1000
+TRAIN_PERCENTAGE = 0.75
+BATCH_SIZE = 75
 SOLVER = 'adam'
 ACTIVATION = 'relu'
 LEARNING_RATE = 'constant'
 LEARNING_RATE_INIT = 0.001
-HIDDEN_LAYERS = (12, 33, 32, 3)
+HIDDEN_LAYERS = (7, 33, 32, 3)
+K_FOLDS = 10
 VERBOSE = 0
 SHUFFLE = True
 ######################
@@ -31,8 +33,10 @@ SHUFFLE = True
 # HYPER PARAMETERS
 ######################
 DATASET_FILE_PATH = 'dataset.csv'
-PRINT_METRICS = False
+SAVE_HYPER_PARAMETERS = True
+PRINT_METRICS = True
 SAVE_MODEL = False
+warnings.filterwarnings("ignore")
 ######################
 ######################
 ######################
@@ -44,7 +48,7 @@ SAVE_MODEL = False
 # Loads dataset from CSV to Pandas.
 df_model = pd.read_csv(DATASET_FILE_PATH, header=None)
 
-# Gets the raw values and places indexes on them.
+# Gets the raw values and places into a dataframe.
 df_model = df_model.rename(columns={0: 'pe', 
                                   1: 'price_book',
                                   2: 'roe', 
@@ -62,7 +66,7 @@ df_model = df_model.rename(columns={0: 'pe',
                                   14: 'debt_asset',
                                   15: 'target'})
 
-# Inputs for the model.
+# X Inputs.
 attributes = ['pe',
               'price_book',
               'roe',
@@ -79,10 +83,14 @@ attributes = ['pe',
               'asset_turnover',
               'debt_asset']
 
+# Creates inputs and targets.
 X = df_model[attributes]
 y = df_model['target']
 
+# Allocates the index for testing (validation).
 train_pct_index = int(TRAIN_PERCENTAGE * len(X))
+
+# Creates training sets and testing sets.
 X_train, X_test = X[:train_pct_index], X[train_pct_index:]
 y_train, y_test = y[:train_pct_index], y[train_pct_index:]
 
@@ -99,6 +107,7 @@ temp_acc = 0
 temp_pos = 0
 for i in range(1):
 
+    # Creates neural network.
     NN = MLPClassifier(hidden_layer_sizes = HIDDEN_LAYERS,
                     random_state = 100,
                     verbose = VERBOSE,
@@ -110,10 +119,12 @@ for i in range(1):
                     shuffle = SHUFFLE,
                     n_iter_no_change = MAX_ITER)
 
+    # Trains network.
     NN.fit(X_train, y_train)
 
-    cross_val_score_recall = np.mean(cross_val_score(NN, X_train,y_train, cv=4, scoring='recall'))
-
+    print("RESULTS")
+    print("Cross Val Score Recall")
+    cross_val_score_recall = np.mean(cross_val_score(NN, X_train,y_train, cv=K_FOLDS, scoring='precision'))
     print(cross_val_score_recall)
 
 
@@ -129,8 +140,8 @@ for i in range(1):
         temp_acc = cross_val_score_recall
         temp_pos = i
 
-    #print(f'pos {i} done at {cross_val_score_recall}')
-    #print(f'best so far : {temp_acc} at {temp_pos}')
+    print(f'pos {i} done at {cross_val_score_recall}')
+    print(f'best so far : {temp_acc} at {temp_pos}')
 
     print("="*20)
     print('****Train Results****')
@@ -139,8 +150,8 @@ for i in range(1):
     print("Accuracy: {:.4%}".format(acc_test)) 
     print('\n')
 
-#print(f'temp_acc : {temp_acc}')
-#print(f'temp_pos : {temp_pos}')
+print(f'temp_acc : {temp_acc}')
+print(f'temp_pos : {temp_pos}')
 
 
 ######################
@@ -155,35 +166,48 @@ if SAVE_MODEL:
 ######################
 # METRICS
 ######################
-print(df_model['target'].value_counts())
-print('\n\n')
-
-matrix_train = confusion_matrix(y_train, pred_train)
-matrix_test = confusion_matrix(y_test, pred_test)
-
-print('matrix_train confusion_matrix')
-print(matrix_train)
-print('\n')
-
-print('matrix_test confusion_matrix')
-print(matrix_test)
-print('\n')
-
-report_train = classification_report(y_train, pred_train)
-report_test = classification_report(y_test, pred_test)
-
-
-print('report_train classification_report')
-print(report_train)
-print('\n')
-
-print('report_test classification_report')
-print(report_test)
-print('\n')
-
 if PRINT_METRICS:
-    with open('metrics.txt','a+') as f:
-        f.write(f'dataset :\t\t dataset_.csv \n')
+    print("VALUE COUNTS")
+    print(df_model['target'].value_counts())
+    print('\n\n')
+
+    print('CONFUSION MATRIX')
+    print('matrix_train')
+    matrix_train = confusion_matrix(y_train, pred_train)
+    print(matrix_train)
+    print('\n')
+
+    print('matrix_test')
+    matrix_test = confusion_matrix(y_test, pred_test)
+    print(matrix_test)
+    print('\n')
+
+    print('CLASSIFICATION REPORT')
+    print('report_train')
+    report_train = classification_report(y_train, pred_train)
+    print(report_train)
+    print('\n')
+
+    print('report_test')
+    report_test = classification_report(y_test, pred_test)
+    print(report_test)
+    print('\n')
+
+    print('PERMUTATION IMPORTANCE')
+    results = permutation_importance(NN, X, y, scoring='neg_mean_squared_error')
+    # get importance
+    importance = results.importances_mean
+    # summarize feature importance
+    for i,v in enumerate(importance):
+        print('Feature: %0d, Score: %.5f' % (i,v))
+    # plot feature importance
+
+    pyplot.figure(num='Permutation Importance')
+    pyplot.bar([x for x in range(len(importance))], importance)
+    pyplot.show()
+
+if SAVE_HYPER_PARAMETERS:
+    with open('hyper_parameters.txt','a+') as f:
         f.write(f'train_acc :\t\t {acc_train} \n')
         f.write(f'test_acc :\t\t {acc_test} \n')
         f.write(f'hidden_layers :\t\t {HIDDEN_LAYERS} \n')
@@ -203,16 +227,3 @@ if PRINT_METRICS:
         f.write(f'########################################## \n')
         f.write(f'########################################## \n')
         f.write(f'########################################## \n\n\n')
-
-'''
-results = permutation_importance(NN, X, y, scoring='neg_mean_squared_error')
-# get importance
-importance = results.importances_mean
-# summarize feature importance
-for i,v in enumerate(importance):
-	print('Feature: %0d, Score: %.5f' % (i,v))
-# plot feature importance
-
-pyplot.bar([x for x in range(len(importance))], importance)
-pyplot.show()
-'''
