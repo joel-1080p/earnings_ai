@@ -30,7 +30,8 @@ matrix_test :
 
 ## Classification Report
 Train Classification Report
-                 precision    recall  f1-score   support
+
+                precision    recall  f1-score   support
 
            0       0.69      1.00      0.81       713
            1       1.00      0.07      0.14       352
@@ -40,7 +41,7 @@ Train Classification Report
     weighted avg    0.79      0.69      0.59      1065
 
 Test Classification Report
-report_test :
+
                  precision    recall  f1-score   support
 
            0       0.70      0.95      0.81       242
