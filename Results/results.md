@@ -1,6 +1,6 @@
 # Quarterly Earnings AI Results
 
-### Hyper paramiters
+## Hyper paramiters
 - hidden_layers :	(7, 33, 32, 3)
 - max_iter : 1000
 - train_percentage : 0.75
@@ -11,15 +11,15 @@
 - learning_rate_init : 0.001
 - shuffle :	True
 
-### Cross Val Score Recall at 10 Folds
+## Cross Val Score Recall at 10 Folds
 0.21223776223776225
 
-### Data Split
+## Data Split
 target
 0    955
 1    466
 
-### Confusion Matrix
+## Confusion Matrix
 matrix_train :
 [713   0]
 [326  26]
@@ -28,7 +28,7 @@ matrix_test :
 [231  11]
 [ 97  17]
 
-### Classification Report
+## Classification Report
 Train Classification Report
                precision    recall  f1-score   support
 
