@@ -20,13 +20,13 @@ target
 1    466
 
 ## Confusion Matrix
-matrix_train :
+matrix_train :    
 [713   0]    
 [326  26]    
 
-matrix_test :
-[231  11]
-[ 97  17]
+matrix_test :    
+[231  11]    
+[ 97  17]    
 
 ## Classification Report
 Train Classification Report
