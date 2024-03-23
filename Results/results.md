@@ -1,15 +1,15 @@
 # Quarterly Earnings AI Results
 
 ### Hyper paramiters
-hidden_layers :	(7, 33, 32, 3) 
-max_iter : 1000 
-train_percentage : 0.75 
-batch_size : 75 
-solver : adam 
-activation : relu 
-learning_rate :	constant 
-learning_rate_init : 0.001 
-shuffle :	True 
+hidden_layers :	(7, 33, 32, 3)
+max_iter : 1000
+train_percentage : 0.75
+batch_size : 75
+solver : adam
+activation : relu
+learning_rate :	constant
+learning_rate_init : 0.001
+shuffle :	True
 
 ### Cross Val Score Recall at 10 Folds
 0.21223776223776225
