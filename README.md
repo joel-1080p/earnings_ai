@@ -1,16 +1,17 @@
 # Quarterly Earnings AI
 
 ### HOW IT WORKS
-Earnings AI takes historical quarterly earning ratios and uses them as input for the sklearn nural network.
+Earnings AI takes historical quarterly earning ratios and uses them as inputs for sklearn.
 
 ### WEB SCRAPING
 When scraping and organizing the data, I tried to stick to companies that operated similarly.
 In this instance, I used the Information Technology sector.
-I would scrape the ratios the day after the earnings report and compaire the underlining stock price to the day before the next earnings report.
-If the underlining stock price had gone up more than 10%, the target value would be set 1. If not, then it would be set to 0.
+I would scrape the ratios the day after the earnings report along with the underlining stock price.
+I then compaired that price to the day before the next earnings report.
+If the underlining price had gone up more than 10%, the target value would be set 1. If not, then it would be set to 0.
 
 ### The Dataset
-`dataset.csv` consists of the following quarterly earnigns ratios.
+`dataset.csv` consists of the following quarterly earnigns ratios dating back to 2010.
 - EP, Price Book, ROE, ROA,
 - Debt to Equity, Gross Margin, Operating Margin,
 - Current Ratio, Quick Ratio,
