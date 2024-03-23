@@ -16,8 +16,8 @@
 
 ## Data Split
 target    
-0    955    
-1    466    
+0 : 955    
+1 : 466    
 
 ## Confusion Matrix
 matrix_train :    
