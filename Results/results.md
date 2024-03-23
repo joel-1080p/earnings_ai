@@ -15,9 +15,9 @@
 0.21223776223776225
 
 ## Data Split
-target
-0    955
-1    466
+target    
+0    955    
+1    466    
 
 ## Confusion Matrix
 matrix_train :    
