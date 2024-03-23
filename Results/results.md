@@ -1,26 +1,57 @@
-# Quarterly Earnings AI
+# Quarterly Earnings AI Results
 
-### HOW IT WORKS
-Earnings AI takes historical quarterly earning ratios and uses them as input for the sklearn nural network.
+### Hyper paramiters
+hidden_layers :	(7, 33, 32, 3) 
+max_iter : 1000 
+train_percentage : 0.75 
+batch_size : 75 
+solver : adam 
+activation : relu 
+learning_rate :	constant 
+learning_rate_init : 0.001 
+shuffle :	True 
 
-### WEB SCRAPING
-When scraping and organizing the data, I tried to stick to companies that operated similarly.
-In this instance, I used the Information Technology sector.
-I would scrape the ratios the day after the earnings report and compaire the underlining stock price to the day before the next earnings report.
-If the underlining stock price had gone up more than 10%, the target value would be set 1. If not, then it would be set to 0.
+### Cross Val Score Recall at 10 Folds
+0.21223776223776225
 
-### The Dataset
-`dataset.csv` consists of the following quarterly earnigns ratios.
-- EP, Price Book, ROE, ROA,
-- Debt to Equity, Gross Margin, Operating Margin,
-- Current Ratio, Quick Ratio,
-- Price FCF, EPS, Book Value per Share,
-- Intrest Coverage, Asset Turnover, Debt Asset
+### Data Split
+target
+0    955
+1    466
 
-The final value (the target value) would be a 1 or 0 if the underlining stock price had gone up 10% or more.
+### Confusion Matrix
+matrix_train :
+[713   0]
+[326  26]
 
-### P.S.
+matrix_test :
+[231  11]
+[ 97  17]
 
-Please drop me a note with any feedback you have.
+### Classification Report
+Train Classification Report
+               precision    recall  f1-score   support
 
-**Joel**
+           0       0.69      1.00      0.81       713
+           1       1.00      0.07      0.14       352
+
+    accuracy                           0.69      1065
+   macro avg       0.84      0.54      0.48      1065
+weighted avg       0.79      0.69      0.59      1065
+
+Test Classification Report
+report_test :
+               precision    recall  f1-score   support
+
+           0       0.70      0.95      0.81       242
+           1       0.61      0.15      0.24       114
+
+    accuracy                           0.70       356
+   macro avg       0.66      0.55      0.52       356
+weighted avg       0.67      0.70      0.63       356
+
+### Permutation Importance
+<img width="655" alt="Screenshot 2024-03-23 at 11 17 40 AM" src="https://github.com/joel-1080p/earnings_ai/assets/156847809/865e94ff-6e30-4c49-a36c-47aab888526a">
+
+
+
