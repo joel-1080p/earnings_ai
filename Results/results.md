@@ -21,8 +21,8 @@ target
 
 ## Confusion Matrix
 matrix_train :
-[713   0]
-[326  26]
+[713   0]    
+[326  26]    
 
 matrix_test :
 [231  11]
