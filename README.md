@@ -20,6 +20,13 @@ If the underlining price had gone up more than 10%, the target value would be se
 
 The final value (the target value) would be a 1 or 0 if the underlining stock price had gone up 10% or more.
 
+### Requirements
+
+-   [Python](https://www.python.org)
+-   [Pandas](https://github.com/pydata/pandas)
+-   [sklearn](https://scikit-learn.org/stable/)
+-   [matplotlib](https://matplotlib.org/)
+
 ### P.S.
 
 Please drop me a note with any feedback you have.
