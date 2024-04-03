@@ -10,7 +10,7 @@ I would scrape the ratios the day after the earnings report along with the under
 I then compaired that price to the day before the next earnings report.
 If the underlining price had gone up more than 10%, the target value would be set 1. If not, then it would be set to 0.
 
-### The Dataset
+## The Dataset
 `dataset.csv` consists of the following quarterly earnigns ratios dating back to 2010.
 - EP, Price Book, ROE, ROA,
 - Debt to Equity, Gross Margin, Operating Margin,
